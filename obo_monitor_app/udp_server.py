@@ -108,8 +108,10 @@ def run_server():
         address = bytesAddressPair[1]
         file = osp.join("data", f"obo_{address[0]}.txt")
 
-
-        size = osp.getsize(file)
+        try:
+            size = osp.getsize(file)
+        except FileNotFoundError:
+            size = MAX_LOG_SIZE + 1
 
         if size > MAX_LOG_SIZE:
             flag = "w"
