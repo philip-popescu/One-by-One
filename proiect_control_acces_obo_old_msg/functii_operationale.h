@@ -4,7 +4,7 @@
 //pasul de cuantizare
 double kg;
 //mesaj ce va fi printat
-unsigned char msg[BUFFER_WIDTH];
+char msg[BUFFER_WIDTH];
 //inputs
 /*
  * CLG[6] - clasele de greutate
@@ -33,7 +33,7 @@ void setup_IO(){
     CLG[i] = 23+2*i;
     pinMode(CLG[i],INPUT_PULLUP);
   }
-  ds1 = 35; ds2 = 37; req1 = 39; req2 = 41; emg = 48; 
+  ds1 = 35; ds2 = 37; req1 = 39; req2 =41; emg = 48; 
   pinMode(ds1,INPUT_PULLUP);
   pinMode(ds2,INPUT_PULLUP);
   pinMode(req1,INPUT_PULLUP);
@@ -65,14 +65,12 @@ void setup_IO(){
 
 
 //Functia care verifica usile
-int check_doors(int send){
-  static unsigned long time_from_last_msg;
-  int ok = 1; 
-  unsigned char door_no = -1;
+int check_doors(){
+  int ok = 1;
   msg[0] = '\0';
   if(digitalRead(ds1) == HIGH){
     digitalWrite(led1,LOW);
-    door_no = 1;
+    strcat(msg,"Door1 open! ");
     ok = 0;
   }else{
     digitalWrite(led1,HIGH);
@@ -80,17 +78,14 @@ int check_doors(int send){
 
   if(digitalRead(ds2) == HIGH){
     digitalWrite(led2,LOW);
-    door_no = 2;
+    strcat(msg,"Door2 open! ");
     ok = 0;
   }else{
     digitalWrite(led2,HIGH);
   }
-
-  if(millis() - time_from_last_msg > CHECK_MSG_FRQ && !ok && send){
-    msg[0] = 1;
-    msg[1] = door_no;
-    send_message(msg, 2);
-    time_from_last_msg = millis();
+  if(millis() % CHECK_MSG_FRQ < MIN_TIME_ERR && !ok){
+    ether_print(msg);
+    delay(2);
   }
   
   return ok;
@@ -108,56 +103,68 @@ int check_class(){
         }
       }
       if(digitalRead(CLG[i]) == LOW){
+        strcpy(msg,"Clasa ta este: ");
+        add_to_string(msg,i+1);
+        ether_print(msg);
         Serial.println(i+1);
+ret:
         return i + 1;
       }
-ret:
     }
   }
   return 0;
 }
 
+//Da semnal de ciclu fals
+void false_cicle(){
+  strcpy(msg,"FALSE CICLE!");
+  ether_print(msg);
+  digitalWrite(ERR_ciclu_fals, LOW);
+  delay(1000);
+  digitalWrite(ERR_ciclu_fals, HIGH);
+  delay(50);
+}
+
 //Functia de efectoare a ciclului de intrare/iesire
-unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
-
-  unsigned char status = 0;
-
+//Functia de efectoare a ciclului de intrare/iesire
+void ciclu(int in, int out, int s_in, int s_out, int type){
   digitalWrite(activ_cicle,LOW);
+  strcpy(msg,"Am inceput ciclul.");
+  ether_print(msg);
   
   int greutate0 = 0, greutate = 0, ok = 0, max_tries = MAX_TRIES;
   unsigned long t0 = millis();
 
-  // READ REFFERENCE WEIGHT
   for(int i = 0 ; i < 5; i++ ){
     greutate0 += analogRead(cantar);
     delay(10);
   }
   greutate0 /= 5;
 
-  // OPEN AND CLOSE THE ACCESS DOOR
+  strcpy(msg,"Tara este: ");
+  add_to_string(msg,(int)(greutate0/kg));
+  ether_print(msg);
+
   digitalWrite(in,LOW);
-  delay(CMD_LEN);
+  t0 = millis();
+  while(millis() - t0 < CMD_LEN){ether_print(NULL);check_doors();}
   digitalWrite(in,HIGH);
   delay(200);
-  while(!check_doors(0)){
+  while(!check_doors()){
     digitalWrite(in,LOW);
     t0 = millis();
-    delay(CMD_FOR_LOCK);
+    while(millis() - t0 < CMD_FOR_LOCK){check_doors();}
     digitalWrite(in,HIGH);
-    delay(W8_TIME_LOCK);
+    t0 = millis();
+    while(millis() - t0 < W8_TIME_LOCK){check_doors();}
   }
   delay(200);
-
-  // Send the weight after the door closes
-  msg[0] = 10;
-  msg[1] = (unsigned char)((int)(analogRead(cantar)/kg));
-  send_message(msg,2);
   
-  // If no person enters
   if(analogRead(cantar)*1.0 - greutate0*1.0 < TAR_PLUS){
-    while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){}
+    false_cicle();
+    while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){ether_print(NULL); check_doors();}
     digitalWrite(activ_cicle,HIGH);
-    return 3;
+    return;
   }
 
   for(int i = 0 ; i < 5; i++ ){
@@ -177,57 +184,55 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
         delay(10);
       }
       greutate /= 5;
+
+      strcpy(msg, "Greutate cantart:");
+      add_to_string(msg,(int)(greutate/kg));
+      strcat(msg,"kg.");
+      ether_print(msg);
       
       int g = greutate - greutate0; 
       
-      if(((clasa*20.0 + 30.0) - 12.5)*kg < g && g < ((clasa*20.0 + 30.0) + 12.5)*kg){ 
-        ok = 1; 
-      } else {
-        msg[0] = 11;
-        msg[1] = clasa;
-        msg[2] = (unsigned char)g;
-        send_message(msg, 3);
-      }
+      strcpy(msg, "Persoana are:");
+      add_to_string(msg,(int)(g/kg));
+      strcat(msg,"kg.");
+      ether_print(msg);
+      
+      
+      if(((clasa*20.0 + 30.0) - 12.5)*kg < g && g < ((clasa*20.0 + 30.0) + 12.5)*kg){ ok = 1; }
     }
   }
 
-  if(!ok) { status = 2; }
-
-  if(digitalRead(req1) == HIGH &&  digitalRead(req2) == HIGH){ 
-    ok = 0; 
-    status = 4;
-  }
+  if(digitalRead(req1) == HIGH &&  digitalRead(req2) == HIGH){ ok = 0; }
   
-  //SUCCESFULLY FINISH THE CYCLE
-  if(ok){
-    status = 1;
+  if(!ok){ false_cicle(); }else{
     digitalWrite(type,LOW);
-    delay(ACK_LEN);
+    t0 = millis();
+    while(millis() - t0 < ACK_LEN){check_doors();}
     digitalWrite(type,HIGH);
     delay(10);
   }
 
   delay(1000);
 
-  // open the exit door
-  while(ok && (analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors(0) == 0)){
+  while(ok && (analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors() == 0)){
     digitalWrite(out,LOW);
-    delay(CMD_FOR_LOCK);
+    t0 = millis();
+    while(millis() - t0 < CMD_FOR_LOCK){check_doors();}
     digitalWrite(out,HIGH);
-    delay(W8_TIME_LOCK);
+    t0 = millis();
+    while(millis() - t0 < W8_TIME_LOCK){check_doors();}
   }
 
-  // YOU SHALL NOT PASS!
-  while(!ok && (analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors(0) == 0)){
+  
+  while(!ok && (analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors() == 0)){
     digitalWrite(in,LOW);
-    delay(CMD_FOR_LOCK);
+    t0 = millis();
+    while(millis() - t0 < CMD_FOR_LOCK){check_doors();}
     digitalWrite(in,HIGH);
     t0 = millis();
-    delay(W8_TIME_LOCK);
+    while(millis() - t0 < W8_TIME_LOCK){check_doors();}
   }
 
-  while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){}
+  while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){ether_print(NULL); check_doors();}
   digitalWrite(activ_cicle,HIGH);
-
-  return status;
 }
