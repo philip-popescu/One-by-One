@@ -86,7 +86,7 @@ int check_doors(int send){
     digitalWrite(led2,HIGH);
   }
 
-  if(millis() - time_from_last_msg > CHECK_MSG_FRQ && !ok && send){
+  if(millis() - time_from_last_msg > CHECK_MSG_ERROR_FRQ && !ok && send){
     msg[0] = 1;
     msg[1] = door_no;
     send_message(msg, 2);
@@ -102,16 +102,17 @@ int check_class(){
   unsigned long timp = millis();
   for(int i = 0; i < 6; i++){
     if(digitalRead(CLG[i]) == LOW){
+      int ok = 1;
       while(millis() - timp < 100) {
         if (digitalRead(CLG[i]) == HIGH) {
-          goto ret;
+          ok = 0;
+          break;
         }
       }
-      if(digitalRead(CLG[i]) == LOW){
+      if(digitalRead(CLG[i]) == LOW && ok){
         Serial.println(i+1);
         return i + 1;
       }
-ret:
     }
   }
   return 0;
@@ -141,12 +142,17 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   delay(200);
   while(!check_doors(0)){
     digitalWrite(in,LOW);
-    t0 = millis();
     delay(CMD_FOR_LOCK);
     digitalWrite(in,HIGH);
     delay(W8_TIME_LOCK);
   }
   delay(200);
+
+  // Send cycle start message
+  msg[0] = 8;
+  msg[1] = (type - ciclu_in) / 2;
+  msg[2] = (unsigned char)(greutate0/kg);
+  send_message(msg, 3);
 
   // Send the weight after the door closes
   msg[0] = 10;
@@ -194,6 +200,8 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   if(!ok) { status = 2; }
 
   if(digitalRead(req1) == HIGH &&  digitalRead(req2) == HIGH){ 
+    msg[0] = 12;
+    send_message(msg, 1);
     ok = 0; 
     status = 4;
   }
@@ -222,7 +230,6 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
     digitalWrite(in,LOW);
     delay(CMD_FOR_LOCK);
     digitalWrite(in,HIGH);
-    t0 = millis();
     delay(W8_TIME_LOCK);
   }
 
