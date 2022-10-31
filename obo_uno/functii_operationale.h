@@ -10,53 +10,44 @@ unsigned char msg[BUFFER_WIDTH];
  * CLG[6] - clasele de greutate
  * ds1/ds2 - senzorii usa 1/2
  * req1/2 - comanda deschidere usa 1/2
- * emg - emergency button
  * cantar - greutatea de pe cantar
 */
-int CLG[6], ds1, ds2, req1, req2, emg, cantar;
+int CLG[6], ds1, ds2, req1, req2,cantar;
 
 //outputs
 /*
  * do1/2 - comanda de deschidere usa 1/2
  * led1/2 - indicator usa1/2
  * ERR_cantar - eroare de indicare a greutatii cantarului
- * ERR_ciclu_fals - eroare ca s-a efectuat un ciclu necorespunzator
  * ciclu_in/ciclu_out - tipul de ciclu efectuat (in/out)
  */
-int do1, do2, led1, led2, ERR_cantar, ERR_ciclu_fals, activ_cicle, ciclu_in, ciclu_out;
+int do1, do2, ERR_cantar,activ_cicle, ciclu_in, ciclu_out;
 
 //Serup pentru inputuri si outputuri
 void setup_IO(){
   //initializare intrari si iesiri
-  cantar = A13;
+  cantar = A0;
   for(int i = 0; i < 6; i++){
-    CLG[i] = 23+2*i;
+    CLG[i] = 8 + i;
     pinMode(CLG[i],INPUT_PULLUP);
   }
-  ds1 = 35; ds2 = 37; req1 = 39; req2 = 41; emg = 48; 
+  ds1 = PIN_A2; ds2 = PIN_A3; req1 = PIN_A4; req2 = PIN_A5; 
   pinMode(ds1,INPUT_PULLUP);
   pinMode(ds2,INPUT_PULLUP);
   pinMode(req1,INPUT_PULLUP);
   pinMode(req2,INPUT_PULLUP);
-  pinMode(emg,INPUT_PULLUP);
 
-  do1 = 22; do2 = 24; led1 = 45; led2 = 46; ERR_cantar = 32; ERR_ciclu_fals = 47; activ_cicle = 26; ciclu_in = 28; ciclu_out = 30;
+  do1 = 2; do2 = 3; ERR_cantar = 4; activ_cicle = 5; ciclu_in = 6; ciclu_out = 7;
   pinMode(do1,OUTPUT);
   pinMode(do2,OUTPUT);
-  pinMode(led1,OUTPUT);
-  pinMode(led2,OUTPUT);
   pinMode(ERR_cantar,OUTPUT);
-  pinMode(ERR_ciclu_fals,OUTPUT);
   pinMode(activ_cicle,OUTPUT);
   pinMode(ciclu_in,OUTPUT);
   pinMode(ciclu_out,OUTPUT);
 
   digitalWrite(do1,HIGH);
   digitalWrite(do2,HIGH);
-  digitalWrite(led1,HIGH);
-  digitalWrite(led2,HIGH);
   digitalWrite(ERR_cantar,HIGH);
-  digitalWrite(ERR_ciclu_fals,HIGH);
   digitalWrite(activ_cicle,HIGH);
   digitalWrite(ciclu_in,HIGH);
   digitalWrite(ciclu_out,HIGH);
@@ -71,19 +62,13 @@ int check_doors(int send){
   unsigned char door_no = -1;
   msg[0] = '\0';
   if(digitalRead(ds1) == HIGH){
-    digitalWrite(led1,LOW);
     door_no = 1;
     ok = 0;
-  }else{
-    digitalWrite(led1,HIGH);
   }
 
   if(digitalRead(ds2) == HIGH){
-    digitalWrite(led2,LOW);
     door_no = 2;
     ok = 0;
-  }else{
-    digitalWrite(led2,HIGH);
   }
 
   if(millis() - time_from_last_msg > CHECK_MSG_FRQ && !ok && send){
@@ -102,16 +87,17 @@ int check_class(){
   unsigned long timp = millis();
   for(int i = 0; i < 6; i++){
     if(digitalRead(CLG[i]) == LOW){
+      int ok = 1;
       while(millis() - timp < 100) {
         if (digitalRead(CLG[i]) == HIGH) {
-          goto ret;
+          ok = 0;
+          break;
         }
       }
-      if(digitalRead(CLG[i]) == LOW){
+      if(digitalRead(CLG[i]) == LOW && ok){
         Serial.println(i+1);
         return i + 1;
       }
-ret:
     }
   }
   return 0;
@@ -147,6 +133,14 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
     delay(W8_TIME_LOCK);
   }
   delay(200);
+
+
+  // Send cycle start message
+  msg[0] = 8;
+  msg[1] = (type - ciclu_in) / 2;
+  msg[2] = (unsigned char)(greutate0/kg);
+  send_message(msg, 3);
+
 
   // Send the weight after the door closes
   msg[0] = 10;
