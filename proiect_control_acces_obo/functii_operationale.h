@@ -185,6 +185,11 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
       greutate /= 5;
       
       int g = greutate - greutate0; 
+
+      if (clasa == 6) {
+        ok = 1;
+        break;
+      }
       
       if(((clasa*20.0 + 30.0) - 12.5)*kg < g && g < ((clasa*20.0 + 30.0) + 12.5)*kg){ 
         ok = 1; 
