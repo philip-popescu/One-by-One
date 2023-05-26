@@ -186,7 +186,8 @@ char * translate(const char* buffer,unsigned long buff_size) {
     char *msg = calloc(BUFFER_WIDTH, sizeof(char));
 
     switch (buffer[1]) {
-
+        default:
+            break;
     }
 
     return msg;

@@ -107,11 +107,11 @@ int check_class(){
         add_to_string(msg,i+1);
         ether_print(msg);
         Serial.println(i+1);
-ret:
         return i + 1;
       }
     }
   }
+ret:
   return 0;
 }
 
@@ -197,8 +197,9 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
       strcat(msg,"kg.");
       ether_print(msg);
       
-      
-      if(((clasa*20.0 + 30.0) - 12.5)*kg < g && g < ((clasa*20.0 + 30.0) + 12.5)*kg){ ok = 1; }
+      if ( clasa == 6) {
+        ok = 1;
+      }else if(((clasa*20.0 + 30.0) - 12.5)*kg < g && g < ((clasa*20.0 + 30.0) + 12.5)*kg){ ok = 1; }
     }
   }
 
