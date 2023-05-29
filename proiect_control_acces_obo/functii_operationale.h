@@ -73,6 +73,7 @@ int check_doors(int send){
   if(digitalRead(ds1) == HIGH){
     digitalWrite(led1,LOW);
     door_no = 1;
+    Serial.println("Door 1 open");
     ok = 0;
   }else{
     digitalWrite(led1,HIGH);
@@ -81,6 +82,7 @@ int check_doors(int send){
   if(digitalRead(ds2) == HIGH){
     digitalWrite(led2,LOW);
     door_no = 2;
+    Serial.println("Door 2 open");
     ok = 0;
   }else{
     digitalWrite(led2,HIGH);
@@ -120,6 +122,8 @@ int check_class(){
 
 //Functia de efectoare a ciclului de intrare/iesire
 unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
+    
+    Serial.println("Entering cicle...");
 
   unsigned char status = 0;
 
@@ -135,6 +139,8 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   }
   greutate0 /= 5;
 
+    Serial.println("GET IN THERE!");
+
   // OPEN AND CLOSE THE ACCESS DOOR
   digitalWrite(in,LOW);
   delay(CMD_LEN);
@@ -147,6 +153,8 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
     delay(W8_TIME_LOCK);
   }
   delay(200);
+
+  Serial.println("DAI GICA CU CARDU!");
 
   // Send cycle start message
   msg[0] = 8;
@@ -163,6 +171,9 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   if(analogRead(cantar)*1.0 - greutate0*1.0 < TAR_PLUS){
     while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){}
     digitalWrite(activ_cicle,HIGH);
+
+    Serial.println("Exit NO cicle...");
+
     return 3;
   }
 
@@ -241,5 +252,6 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){}
   digitalWrite(activ_cicle,HIGH);
 
+    Serial.println("Exiting cicle...");
   return status;
 }

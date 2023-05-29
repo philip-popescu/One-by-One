@@ -20,7 +20,15 @@ void loop() {
     digitalWrite(ERR_cantar,LOW);
     // EDGE CASE "MESE"
     while((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors(0) == 0)){
+
+  Serial.print("Cantar W1: ");
+  Serial.println((int)(analogRead(cantar)/kg));
+
       if(millis() - time_from_last_error_msg  > CHECK_MSG_ERROR_FRQ){
+
+  Serial.print("Cantar: ");
+  Serial.println((int)(analogRead(cantar)/kg));
+
         msg[0] = 2;
         msg[1] = (unsigned char)((int)(analogRead(cantar)/kg));
         send_message(msg,2);
@@ -43,6 +51,8 @@ void loop() {
     if(millis() - time_from_last_msg > CHECK_MSG_FRQ){
       msg[0] = 0;
       msg[1] = (unsigned char)((int)(analogRead(cantar)/kg));
+      Serial.print("Cantar: ");
+      Serial.println((int)(analogRead(cantar)/kg));
       send_message(msg,2);
       time_from_last_msg = millis();
     }
@@ -63,7 +73,11 @@ void loop() {
   } else {
     int door = (digitalRead(ds1) == HIGH) ? do1 : do2;
     int door_s = (digitalRead(ds1) == HIGH) ? ds1 : ds2;
-    while((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || digitalRead(door_s) == HIGH)){
+    while((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || !check_doors(1))){
+
+  Serial.print("Cantar W2: ");
+  Serial.println((int)(analogRead(cantar)/kg));
+
       digitalWrite(door, LOW);
       delay(CMD_FOR_LOCK);
       digitalWrite(door, HIGH);

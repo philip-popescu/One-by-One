@@ -66,11 +66,15 @@ void setup_IO(){
 
 //Functia care verifica usile
 int check_doors(){
+
+#ifdef DEBUG
+    static unsigned long long t = 0;
+#endif
   int ok = 1;
   msg[0] = '\0';
   if(digitalRead(ds1) == HIGH){
     digitalWrite(led1,LOW);
-    strcat(msg,"Door1 open! ");
+    strcat(msg,"Door 1 open! ");
     ok = 0;
   }else{
     digitalWrite(led1,HIGH);
@@ -78,7 +82,7 @@ int check_doors(){
 
   if(digitalRead(ds2) == HIGH){
     digitalWrite(led2,LOW);
-    strcat(msg,"Door2 open! ");
+    strcat(msg,"Door 2 open! ");
     ok = 0;
   }else{
     digitalWrite(led2,HIGH);
@@ -87,6 +91,13 @@ int check_doors(){
     ether_print(msg);
     delay(2);
   }
+
+#ifdef DEBUG
+    if (millis() - t > 500 && !ok) {
+        Serial.println("WARNING: DOOR OPEN!");
+        t = millis();
+    }
+#endif
   
   return ok;
 }
@@ -103,9 +114,10 @@ int check_class(){
         }
       }
       if(digitalRead(CLG[i]) == LOW){
-        strcpy(msg,"Clasa ta este: ");
+        strcpy(msg,"Recived weight class: ");
         add_to_string(msg,i+1);
         ether_print(msg);
+        Serial.print("Clasa citita: ");
         Serial.println(i+1);
         return i + 1;
       }
@@ -129,9 +141,13 @@ void false_cicle(){
 //Functia de efectoare a ciclului de intrare/iesire
 void ciclu(int in, int out, int s_in, int s_out, int type){
   digitalWrite(activ_cicle,LOW);
-  strcpy(msg,"Am inceput ciclul.");
+  strcpy(msg,"Cicle starting...");
   ether_print(msg);
   
+#ifdef DEBUG
+    Serial.println("Am inceput ciclul.");
+#endif
+
   int greutate0 = 0, greutate = 0, ok = 0, max_tries = MAX_TRIES;
   unsigned long t0 = millis();
 
@@ -141,9 +157,13 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
   }
   greutate0 /= 5;
 
-  strcpy(msg,"Tara este: ");
+  strcpy(msg,"Base weight: ");
   add_to_string(msg,(int)(greutate0/kg));
   ether_print(msg);
+
+#ifdef DEBUG
+    Serial.println("GET IN THERE LEWIS!");
+#endif
 
   digitalWrite(in,LOW);
   t0 = millis();
@@ -158,7 +178,6 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
     t0 = millis();
     while(millis() - t0 < W8_TIME_LOCK){check_doors();}
   }
-  delay(200);
   
   if(analogRead(cantar)*1.0 - greutate0*1.0 < TAR_PLUS){
     false_cicle();
@@ -172,6 +191,11 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
     delay(10);
   }
   greutate /= 5;
+
+  
+#ifdef DEBUG
+    Serial.println("DA-I CU CARDUL MAI VASILE, MAI!");
+#endif
   
   t0 = millis();
   while(millis() - t0 < CICLE_TIME && max_tries != 0 && !ok){
@@ -185,14 +209,14 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
       }
       greutate /= 5;
 
-      strcpy(msg, "Greutate cantart:");
+      strcpy(msg, "Total weight:");
       add_to_string(msg,(int)(greutate/kg));
       strcat(msg,"kg.");
       ether_print(msg);
       
       int g = greutate - greutate0; 
       
-      strcpy(msg, "Persoana are:");
+      strcpy(msg, "You have");
       add_to_string(msg,(int)(g/kg));
       strcat(msg,"kg.");
       ether_print(msg);
@@ -212,8 +236,6 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
     digitalWrite(type,HIGH);
     delay(10);
   }
-
-  delay(1000);
 
   while(ok && (analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors() == 0)){
     digitalWrite(out,LOW);
@@ -236,4 +258,12 @@ void ciclu(int in, int out, int s_in, int s_out, int type){
 
   while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){ether_print(NULL); check_doors();}
   digitalWrite(activ_cicle,HIGH);
+
+    strcpy(msg, "Exiting cicle with: ");
+    strcat(msg, (ok)? "SUCCESS" : "FAILURE");
+    ether_print(msg);
+  
+#ifdef DEBUG
+    Serial.println("Exiting cicle...");
+#endif
 }

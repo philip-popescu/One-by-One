@@ -20,7 +20,7 @@ void loop() {
   
   ether_print(NULL);
   if(millis()%CHECK_MSG_FRQ < MIN_TIME_ERR){
-    strcpy(msg, "La cantar am: ");
+    strcpy(msg, "Standby scale value: ");
     add_to_string(msg,(int)(analogRead(cantar)/kg));
     strcat(msg,"kg");
     ether_print(msg);
@@ -38,19 +38,19 @@ void loop() {
       digitalWrite(ERR_cantar,HIGH);
       delay(1);
       if(digitalRead(req1) == LOW){
-        strcpy(msg,"Incep ciclu intrare!");
+        strcpy(msg,"Starting enter cycle...");
         ether_print(msg);
         ciclu(do1,do2,ds1,ds2,ciclu_in);
       }
       delay(1);
       if(digitalRead(req2) == LOW){
-        strcpy(msg,"Incep ciclu iesire!");
+        strcpy(msg,"Starting exit cycle...");
         ether_print(msg);
         ciclu(do2,do1,ds2,ds1,ciclu_out);
       }
     }else{
       digitalWrite(ERR_cantar,LOW);
-      strcpy(msg,"WARNING! CANTAR DECALIBRAT CE INDICA: ");
+      strcpy(msg,"SCALE WARNING!: ");
       add_to_string(msg, (int)analogRead(cantar)/kg);
       strcat(msg,"kg");
       ether_print(msg);
@@ -62,7 +62,7 @@ void loop() {
         t0 = millis();
         while(millis() - t0 < W8_TIME_LOCK){check_doors();}
         if(millis() % CHECK_MSG_FRQ < MIN_TIME_ERR){
-          strcpy(msg,"WARNING! CANTAR DECALIBRAT CE INDICA: ");
+          strcpy(msg,"SCALE WARNING!: ");
           add_to_string(msg, (int)analogRead(cantar)/kg);
           strcat(msg,"kg");
           ether_print(msg);
