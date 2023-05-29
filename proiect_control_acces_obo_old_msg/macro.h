@@ -1,6 +1,6 @@
 //Valori pentru functionare
 //
-#define DEBUG
+// #define DEBUG
 
 //DIMENSIUNILE BUFFERULUI DE MESAJE
 #define BUFFER_LEN 20
