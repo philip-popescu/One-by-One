@@ -1,6 +1,14 @@
 from socket import *
 from datetime import datetime
 import os.path as osp
+import os
+import pathlib
+
+
+HOME_DIRECTORY = str(pathlib.Path(__file__).parent.absolute())
+DATA_FOLDER = os.path.join(HOME_DIRECTORY, "data")
+CONFIG_FOLDER = os.path.join(HOME_DIRECTORY, "config")
+
 
 localIP = "192.168.0.29"
 localPort = 20001
@@ -19,7 +27,8 @@ MESSAGES = {
     9: "{}: CYCLE ENDED: {}",
     10: "{}: SCALE VALUE: {}KG",
     11: "{}: WEIGHT CLASS MISMATCH: {} KG NOT IN CLASS {}",
-    12: "{}: TIME LIMIT EXPIRED USER NOT PRESENT/NOT REGISTERED"
+    12: "{}: TIME LIMIT EXPIRED USER NOT PRESENT/NOT REGISTERED",
+    13: "{}: EMERGENCY EXIT ACTIVE!"
   }
 
 TAG = {
@@ -30,7 +39,8 @@ TAG = {
     "9": "normal",
     "10": "normal",
     "11": "special",
-    "12": "special"
+    "12": "special",
+    "13": "warning"
 }
 
 STATUS = {
@@ -74,13 +84,15 @@ def decode_message(msg):
         return MESSAGES[msg_type].format(datetime.fromtimestamp(timestamp), weight, w_class)
     elif msg_type == 12:
         return MESSAGES[msg_type].format(datetime.fromtimestamp(timestamp))
+    elif msg_type == 13:
+        return MESSAGES[msg_type].format(datetime.fromtimestamp(timestamp))
 
     return f"{datetime.now()}: Unknown message from Client: {msg}"
 
 
 def init_server():
     global localIP, localPort
-    with open(osp.join("config", "IP_signatures")) as cin:
+    with open(osp.join(CONFIG_FOLDER, "IP_signatures")) as cin:
         data = cin.read().split("\n")
         localIP = data[0]
         localPort = int(data[1])

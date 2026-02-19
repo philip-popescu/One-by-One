@@ -24,31 +24,34 @@ File data;
 
 void client_setup() {
   Serial.print("Initializing SD card...");
-
+  /**
   if (!SD.begin(4)) {
     Serial.println("initialization failed!");
     while (1);
   }
   Serial.println("initialization done.");
+  **/
 
-  data = SD.open("data.txt", FILE_READ);
+  // data = SD.open("data.txt", FILE_READ);
 
   unsigned char buff[50];
-  ip.fromString(data.readStringUntil('\n'));
+  // data.readStringUntil('\n')
+  ip.fromString("10.48.152.199");
   Serial.print("Local IP: ");
   Serial.println(ip);
 
-  data.readStringUntil('\n').getBytes(buff, 50);
-  localPort = atoi(buff);
+  // data.readStringUntil('\n').getBytes(buff, 50);
+  // localPort = atoi(buff);
+  localPort = 8888;
   Serial.print("Local PORT: ");
   Serial.println(localPort);
 
-  remote_ip.fromString(data.readStringUntil('\n'));
+  remote_ip.fromString("10.48.152.3");
   Serial.print("Remote IP: ");
   Serial.println(remote_ip);
 
-  data.readStringUntil('\n').getBytes(buff, 50);
-  remote_port = atoi(buff);
+  // data.readStringUntil('\n').getBytes(buff, 50);
+  remote_port = 20001;
   Serial.print("Remote PORT: ");
   Serial.println(remote_port);
 
@@ -63,6 +66,16 @@ void client_setup() {
       delay(1); // do nothing, no point running without Ethernet hardware
     }
   }
+  else if (Ethernet.hardwareStatus() == EthernetW5100) {
+    Serial.println("W5100 Ethernet controller detected.");
+  }
+  else if (Ethernet.hardwareStatus() == EthernetW5200) {
+    Serial.println("W5200 Ethernet controller detected.");
+  }
+  else if (Ethernet.hardwareStatus() == EthernetW5500) {
+    Serial.println("W5500 Ethernet controller detected.");
+  }
+
   if (Ethernet.linkStatus() == LinkOFF) {
     Serial.println("Ethernet cable is not connected.");
   }

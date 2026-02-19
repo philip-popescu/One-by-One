@@ -13,6 +13,24 @@ void loop() {
   static unsigned long time_from_last_msg = 0;
   static unsigned long time_from_last_error_msg = 0;
 
+  if(digitalRead(emg) == LOW) {
+    
+    Serial.print("Emergency active!");
+
+    msg[0] = 13;
+    send_message(msg,1);
+
+    digitalWrite(do1, LOW);
+    delay(100);
+    digitalWrite(do2, LOW);
+
+    do {} while (digitalRead(emg) == LOW);
+    
+    digitalWrite(do1, HIGH);
+    delay(100);
+    digitalWrite(do2, HIGH);
+  }
+
   // VERIFICARE CANTAR
   if(analogRead(cantar) > MIN_WEIGHT - TAR_MINUS && analogRead(cantar) < MIN_WEIGHT + TAR_PLUS){
       digitalWrite(ERR_cantar,HIGH);
@@ -59,12 +77,12 @@ void loop() {
 
     // CHECK IF WE HAVE A REQUEST
     if(digitalRead(req1) == LOW){
-      unsigned char status = ciclu(do1,do2,ds1,ds2,ciclu_in);
+      unsigned char status = ciclu(do1,do2,ds1,ds2,ciclu_in, count_up);
       msg[0] = 9;
       msg[1] = status;
       send_message(msg,2);
     }else if(digitalRead(req2) == LOW){
-      unsigned char status = ciclu(do2,do1,ds2,ds1,ciclu_out);
+      unsigned char status = ciclu(do2,do1,ds2,ds1,ciclu_out, count_down);
       msg[0] = 9;
       msg[1] = status;
       send_message(msg,2);

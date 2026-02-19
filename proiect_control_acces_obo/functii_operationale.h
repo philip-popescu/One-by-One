@@ -10,7 +10,7 @@ unsigned char msg[BUFFER_WIDTH];
  * CLG[6] - clasele de greutate
  * ds1/ds2 - senzorii usa 1/2
  * req1/2 - comanda deschidere usa 1/2
- * emg - emergency button
+ *   - emergency button
  * cantar - greutatea de pe cantar
 */
 int CLG[6], ds1, ds2, req1, req2, emg, cantar;
@@ -23,7 +23,7 @@ int CLG[6], ds1, ds2, req1, req2, emg, cantar;
  * ERR_ciclu_fals - eroare ca s-a efectuat un ciclu necorespunzator
  * ciclu_in/ciclu_out - tipul de ciclu efectuat (in/out)
  */
-int do1, do2, led1, led2, ERR_cantar, ERR_ciclu_fals, activ_cicle, ciclu_in, ciclu_out;
+int do1, do2, led1, led2, ERR_cantar, ERR_ciclu_fals, activ_cicle, ciclu_in, ciclu_out, count_up, count_down;
 
 //Serup pentru inputuri si outputuri
 void setup_IO(){
@@ -33,14 +33,17 @@ void setup_IO(){
     CLG[i] = 23+2*i;
     pinMode(CLG[i],INPUT_PULLUP);
   }
-  ds1 = 35; ds2 = 37; req1 = 39; req2 = 41; emg = 48; 
+  ds1 = 35; ds2 = 37; req1 = 39; req2 = 41; emg = 43; 
   pinMode(ds1,INPUT_PULLUP);
   pinMode(ds2,INPUT_PULLUP);
   pinMode(req1,INPUT_PULLUP);
   pinMode(req2,INPUT_PULLUP);
   pinMode(emg,INPUT_PULLUP);
 
-  do1 = 22; do2 = 24; led1 = 45; led2 = 46; ERR_cantar = 32; ERR_ciclu_fals = 47; activ_cicle = 26; ciclu_in = 28; ciclu_out = 30;
+  do1 = 22; do2 = 24; led1 = 45; led2 = 46; 
+  ERR_cantar = 32; ERR_ciclu_fals = 47; activ_cicle = 26; 
+  ciclu_in = 28; ciclu_out = 30; count_up = 34; count_down = 36;
+
   pinMode(do1,OUTPUT);
   pinMode(do2,OUTPUT);
   pinMode(led1,OUTPUT);
@@ -50,6 +53,8 @@ void setup_IO(){
   pinMode(activ_cicle,OUTPUT);
   pinMode(ciclu_in,OUTPUT);
   pinMode(ciclu_out,OUTPUT);
+  pinMode(count_up,OUTPUT);
+  pinMode(count_down,OUTPUT);
 
   digitalWrite(do1,HIGH);
   digitalWrite(do2,HIGH);
@@ -60,6 +65,8 @@ void setup_IO(){
   digitalWrite(activ_cicle,HIGH);
   digitalWrite(ciclu_in,HIGH);
   digitalWrite(ciclu_out,HIGH);
+  digitalWrite(count_up,HIGH);
+  digitalWrite(count_down,HIGH);
 }
 
 
@@ -121,9 +128,9 @@ int check_class(){
 }
 
 //Functia de efectoare a ciclului de intrare/iesire
-unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
+unsigned char ciclu(int in, int out, int s_in, int s_out, int type, int count_type){
     
-    Serial.println("Entering cicle...");
+  Serial.println("Entering cicle...");
 
   unsigned char status = 0;
 
@@ -196,6 +203,7 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
       greutate /= 5;
       
       int g = greutate - greutate0; 
+      Serial.println(g/kg);
 
       if (clasa == 6) {
         ok = 1;
@@ -207,7 +215,7 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
       } else {
         msg[0] = 11;
         msg[1] = clasa;
-        msg[2] = (unsigned char)g;
+        msg[2] = (unsigned char)(g/kg);
         send_message(msg, 3);
       }
     }
@@ -226,8 +234,10 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   if(ok){
     status = 1;
     digitalWrite(type,LOW);
+    digitalWrite(count_type,LOW);
     delay(ACK_LEN);
     digitalWrite(type,HIGH);
+    digitalWrite(count_type,HIGH);
     delay(10);
   }
 
@@ -252,6 +262,6 @@ unsigned char ciclu(int in, int out, int s_in, int s_out, int type){
   while(digitalRead(req1) == LOW || digitalRead(req2) == LOW){}
   digitalWrite(activ_cicle,HIGH);
 
-    Serial.println("Exiting cicle...");
+  Serial.println("Exiting cicle...");
   return status;
 }

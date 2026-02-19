@@ -2,17 +2,21 @@ import os
 import os.path as osp
 from threading import Thread
 import udp_server as us
-from udp_server import run_server, localIP, localPort, decode_message, TAG
+from udp_server import run_server, localIP, localPort, decode_message, TAG, DATA_FOLDER
 import tkinter as tk
+import time
+
 
 
 def getControllers():
-    return [x.removesuffix(".txt") for x in os.listdir("data")]
+    return [x.removesuffix(".txt") for x in os.listdir(DATA_FOLDER)]
 
 
 def main():
     server = Thread(target=run_server)
     server.start()
+
+    time.sleep(1)
 
     root = tk.Tk()
     root.title("OBO message monitor")
@@ -53,7 +57,7 @@ def main():
     v = tk.Scrollbar(root, orient='vertical')
     v.grid(row=4, column=10, sticky=tk.N + tk.S)
 
-    Output = tk.Text(root, height=50,
+    Output = tk.Text(root, height=40,
                      width=80,
                      bg="light yellow",
                      yscrollcommand=v.set)
@@ -87,10 +91,14 @@ def main():
     def stop_server():
         us.stopThread = True
         root.destroy()
+
+    def update_callback():
+        updateLog()
+        root.after(5000, update_callback)
+
+    root.after(5000, update_callback)
     root.protocol("WM_DELETE_WINDOW", stop_server)
     root.mainloop()
-
-
 
 
 if __name__ == '__main__':
