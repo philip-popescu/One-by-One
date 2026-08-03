@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08111f">
+  <title>Settings · OBO Control Center</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body data-page="settings">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="OBO home">
+        <span class="brand-mark">O</span>
+        <span>
+          <strong>OBO</strong>
+          <small>Control Center</small>
+        </span>
+      </a>
+
+      <div class="topbar-actions">
+        <nav class="main-nav" aria-label="Main navigation">
+          <a class="nav-link" href="/">
+            <span aria-hidden="true">⌂</span>
+            Home
+          </a>
+          <a class="nav-link active" href="/settings" aria-current="page">
+            <span aria-hidden="true">⚙</span>
+            Settings
+          </a>
+        </nav>
+
+        <div class="connection-pill" id="connection-pill">
+          <span class="status-dot"></span>
+          <span id="connection-label">Connecting</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero settings-hero">
+      <div>
+        <p class="eyebrow">Protected administration</p>
+        <h1>Device settings</h1>
+        <p class="hero-copy">Change the controller network identity and administrator credentials stored in <strong>DATA.TXT</strong>.</p>
+      </div>
+      <a class="button button-secondary" href="/">
+        <span aria-hidden="true">←</span>
+        Back to dashboard
+      </a>
+    </section>
+
+    <div class="settings-layout">
+      <section class="card settings-card settings-page-card">
+        <div class="card-header compact">
+          <div>
+            <p class="section-kicker">Configuration</p>
+            <h2>Network and account</h2>
+            <p>Current administrator credentials are required before any change is saved.</p>
+          </div>
+          <span class="lock-badge" title="Authentication required" aria-label="Authentication required">●</span>
+        </div>
+
+        <form id="settings-form" autocomplete="off">
+          <div class="form-section">
+            <div class="form-section-title">
+              <span>1</span>
+              <div>
+                <strong>Authenticate</strong>
+                <small>Factory default: admin / admin</small>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Current username</span>
+                <input id="username" name="username" maxlength="16" autocomplete="username" required>
+              </label>
+
+              <label class="field">
+                <span>Current password</span>
+                <div class="password-wrap">
+                  <input id="password" name="password" type="password" maxlength="32" autocomplete="current-password" required>
+                  <button class="password-toggle" type="button" data-target="password" aria-label="Show password">Show</button>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <span>2</span>
+              <div>
+                <strong>Network identity</strong>
+                <small>Applied after the response is returned</small>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>Device IPv4 address</span>
+                <input id="ip" name="ip" inputmode="decimal" placeholder="192.168.1.177" required>
+              </label>
+
+              <label class="field">
+                <span>Device MAC address</span>
+                <input id="mac" name="mac" inputmode="text" maxlength="17"
+                       pattern="[0-9A-Fa-f]{2}([:-][0-9A-Fa-f]{2}){5}"
+                       placeholder="DE:AD:BE:EF:FE:E0" spellcheck="false" required>
+                <em>Six hexadecimal pairs separated by colons or hyphens.</em>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-divider"></div>
+
+          <div class="form-section">
+            <div class="form-section-title">
+              <span>3</span>
+              <div>
+                <strong>Administrator account</strong>
+                <small>Leave both fields blank to keep the current account</small>
+              </div>
+            </div>
+
+            <div class="field-grid">
+              <label class="field">
+                <span>New username <em>optional</em></span>
+                <input id="new-username" name="newUsername" maxlength="16" autocomplete="new-username">
+              </label>
+
+              <label class="field">
+                <span>New password <em>optional</em></span>
+                <div class="password-wrap">
+                  <input id="new-password" name="newPassword" type="password" maxlength="32" autocomplete="new-password">
+                  <button class="password-toggle" type="button" data-target="new-password" aria-label="Show new password">Show</button>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a class="button button-ghost" href="/">Cancel</a>
+            <button class="button button-primary save-button" type="submit">Save configuration</button>
+          </div>
+          <p class="form-status" id="settings-status" role="status"></p>
+        </form>
+      </section>
+
+      <aside class="settings-sidebar">
+        <section class="card identity-card">
+          <div class="card-header compact">
+            <div>
+              <p class="section-kicker">Current device</p>
+              <h2>Network identity</h2>
+            </div>
+          </div>
+          <div class="identity-list">
+            <div class="identity-item">
+              <span>IPv4 address</span>
+              <strong id="current-ip">Loading...</strong>
+            </div>
+            <div class="identity-item">
+              <span>MAC address</span>
+              <strong id="current-mac">Loading...</strong>
+            </div>
+            <div class="identity-item">
+              <span>Uptime</span>
+              <strong id="device-uptime">--</strong>
+            </div>
+            <div class="identity-item">
+              <span>Last checked</span>
+              <strong id="last-updated">Never</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="notice-card">
+          <div class="notice-icon" aria-hidden="true">!</div>
+          <div>
+            <strong>Local-network security</strong>
+            <p>Credentials are saved as plain text on the SD card and sent over HTTP. Use this interface only on a trusted local network.</p>
+          </div>
+        </section>
+
+        <section class="notice-card notice-card-soft">
+          <div class="notice-icon" aria-hidden="true">↻</div>
+          <div>
+            <strong>After a network change</strong>
+            <p>An IP or MAC update restarts Ethernet. The page will reconnect automatically when possible.</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="footer">
+      <span>OBO local interface</span>
+      <span class="footer-separator">•</span>
+      <a href="/">Return to live monitoring</a>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

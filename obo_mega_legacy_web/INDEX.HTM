@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08111f">
+  <title>OBO Control Center</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body data-page="home">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="OBO home">
+        <span class="brand-mark">O</span>
+        <span>
+          <strong>OBO</strong>
+          <small>Control Center</small>
+        </span>
+      </a>
+
+      <div class="topbar-actions">
+        <nav class="main-nav" aria-label="Main navigation">
+          <a class="nav-link active" href="/" aria-current="page">
+            <span aria-hidden="true">⌂</span>
+            Home
+          </a>
+          <a class="nav-link" href="/settings">
+            <span aria-hidden="true">⚙</span>
+            Settings
+          </a>
+        </nav>
+
+        <div class="connection-pill" id="connection-pill">
+          <span class="status-dot"></span>
+          <span id="connection-label">Connecting</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Live device monitoring</p>
+        <h1>Device overview</h1>
+        <p class="hero-copy">Monitor network identity, uptime, and the latest operational events from the local OBO controller.</p>
+      </div>
+      <button class="button button-primary" id="refresh-button" type="button">
+        <span class="refresh-symbol" aria-hidden="true">↻</span>
+        Refresh data
+      </button>
+    </section>
+
+    <section class="metrics" aria-label="Device status">
+      <article class="metric-card">
+        <div class="metric-icon network-icon" aria-hidden="true">IP</div>
+        <div>
+          <span class="metric-label">Device address</span>
+          <strong id="current-ip">Loading...</strong>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-icon mac-icon" aria-hidden="true">MAC</div>
+        <div>
+          <span class="metric-label">Hardware address</span>
+          <strong id="current-mac">Loading...</strong>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-icon message-icon" aria-hidden="true">#</div>
+        <div>
+          <span class="metric-label">Stored messages</span>
+          <strong><span id="message-count">0</span><small> / 50</small></strong>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-icon uptime-icon" aria-hidden="true">⌁</div>
+        <div>
+          <span class="metric-label">Device uptime</span>
+          <strong id="device-uptime">--</strong>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-icon update-icon" aria-hidden="true">✓</div>
+        <div>
+          <span class="metric-label">Last synchronized</span>
+          <strong id="last-updated">Never</strong>
+        </div>
+      </article>
+    </section>
+
+    <section class="card messages-card">
+      <div class="card-header">
+        <div>
+          <p class="section-kicker">Activity</p>
+          <h2>Recent messages</h2>
+          <p>The latest 50 messages stay available after every page refresh.</p>
+        </div>
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="message-search" type="search" placeholder="Filter messages" autocomplete="off">
+        </label>
+      </div>
+
+      <div class="message-feed" id="message-feed" aria-live="polite">
+        <div class="empty-state">
+          <span class="loader" aria-hidden="true"></span>
+          <strong>Loading activity</strong>
+          <p>Reading messages from the device...</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>OBO local interface</span>
+      <span class="footer-separator">•</span>
+      <a href="/settings">Manage network and credentials</a>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
