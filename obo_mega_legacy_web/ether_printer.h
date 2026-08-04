@@ -790,6 +790,7 @@ void client_loop() {
 void send_message(const char *buffer, unsigned long bufferSize) {
   char translated[WEB_MESSAGE_LENGTH];
   translateMessage(buffer, bufferSize, translated, sizeof(translated));
+  Serial.println(translated);
   addBufferMessage(translated);
 }
 

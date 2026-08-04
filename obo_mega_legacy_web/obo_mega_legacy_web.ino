@@ -22,7 +22,7 @@ void loop() {
   }else{
     digitalWrite(ERR_cantar,LOW);
     // EDGE CASE "MESE"
-    while((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors(0) == 0)){
+    if((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || check_doors(0) == 0)){
       if(millis() - time_from_last_error_msg  > CHECK_MSG_ERROR_FRQ){
         msg[0] = 2;
         msg[1] = (unsigned char)((int)(analogRead(cantar)/kg));
@@ -66,7 +66,7 @@ void loop() {
   } else {
     int door = (digitalRead(ds1) == HIGH) ? do1 : do2;
     int door_s = (digitalRead(ds1) == HIGH) ? ds1 : ds2;
-    while((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || digitalRead(door_s) == HIGH)){
+    if((analogRead(cantar)*1.0 > MIN_WEIGHT + TAR_PLUS || digitalRead(door_s) == HIGH)){
       digitalWrite(door, LOW);
       delay(CMD_FOR_LOCK);
       digitalWrite(door, HIGH);
